@@ -1,0 +1,159 @@
+name: Build Crate
+
+# Builds the Android app and publishes it as the rolling "crate" release, replacing the previous APK.
+on:
+  push:
+    branches: [main]
+    paths: ['app/**', '.github/workflows/app.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    working-directory: app
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4.4.0
+        with:
+          node-version: 22
+
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3  # v4.9.1
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Bundle the Inter font (works offline)
+        run: |
+          mkdir -p www/fonts
+          cp node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2 www/fonts/inter.woff2
+          cp node_modules/@fontsource-variable/inter/files/inter-latin-ext-wght-normal.woff2 www/fonts/inter-ext.woff2
+
+      - name: Create Android project
+        run: npx cap add android
+
+      # Spotify's App Remote SDK lets Crate tell the Spotify app what to play and show what's playing.
+      # It isn't on Maven, so it comes from Spotify's GitHub release, checked against a known hash.
+      - name: Spotify remote control
+        run: |
+          J=android/app/src/main/java/io/github/pvandenboer_alt/crate
+          test -f "$J/MainActivity.java"
+          cp native/android/*.java "$J/"
+          mkdir -p android/app/libs
+          curl -sSfL -o android/app/libs/spotify-app-remote.aar https://github.com/spotify/android-sdk/releases/download/v0.8.0-appremote_v2.1.0-auth/spotify-app-remote-release-0.8.0.aar
+          curl -sSfL -o android/app/libs/spotify-auth.aar https://github.com/spotify/android-sdk/releases/download/v0.8.0-appremote_v2.1.0-auth/spotify-auth-release-2.1.0.aar
+          echo "b5a6dd880eaf01f63a871cba9ef7af77c341f8a94ffc8fdf2e9021f9a9d4c198  android/app/libs/spotify-app-remote.aar" | sha256sum -c -
+          echo "2a0710699c79cd0238b3b14e2cd9e34f15321806414541b0fc6c961a4a2d9a9c  android/app/libs/spotify-auth.aar" | sha256sum -c -
+          # The auth library's login screen answers on crate-music://spotify (the redirect URI
+          # registered in Spotify's dashboard).
+          cat >> android/app/build.gradle <<'GRADLE'
+
+          android {
+              defaultConfig {
+                  manifestPlaceholders += [redirectSchemeName: "crate-music", redirectHostName: "spotify"]
+              }
+          }
+          dependencies {
+              implementation files('libs/spotify-app-remote.aar')
+              implementation files('libs/spotify-auth.aar')
+              implementation 'com.google.code.gson:gson:2.11.0'
+              implementation 'androidx.browser:browser:1.8.0'
+          }
+          GRADLE
+
+      - name: Version number
+        run: |
+          G=android/app/build.gradle
+          sed -i "s/versionCode 1$/versionCode ${{ github.run_number }}/" "$G"
+          sed -i "s/versionName \"1.0\"/versionName \"1.${{ github.run_number }}\"/" "$G"
+          grep -n "versionCode\|versionName" "$G"
+
+      - name: Open Spotify links in the Spotify app
+        run: |
+          M=android/app/src/main/AndroidManifest.xml
+          # Android 11+ only lets the app see Spotify if it says so.
+          sed -i 's#<uses-permission android:name="android.permission.INTERNET" />#<uses-permission android:name="android.permission.INTERNET" />\n    <queries><package android:name="com.spotify.music" /><intent><action android:name="android.intent.action.VIEW" /><data android:scheme="spotify" /></intent></queries>#' "$M"
+          grep -q com.spotify.music "$M"
+          # The Notion key lives in the app's storage: keep it out of cloud and device-to-device backups.
+          sed -i 's/android:allowBackup="true"/android:allowBackup="false"/' "$M"
+          grep -q 'android:allowBackup="false"' "$M"
+
+      - name: App icon and splash
+        continue-on-error: true
+        run: npx capacitor-assets generate --android --iconBackgroundColor '#FA2D48' --iconBackgroundColorDark '#FA2D48' --splashBackgroundColor '#FFFFFF' --splashBackgroundColorDark '#000000'
+
+      - name: Sync web app
+        run: npx cap sync android
+
+      # Updates only install over a build signed with the same key (ANDROID_KEYSTORE_BASE64).
+      - name: Signing key
+        env:
+          KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          mkdir -p ~/.android
+          if [ -n "$KEYSTORE" ]; then
+            echo "$KEYSTORE" | base64 -d > ~/.android/debug.keystore
+          else
+            echo "::warning::No ANDROID_KEYSTORE_BASE64 secret: signing with a throwaway key, so this APK won't install over earlier builds."
+            keytool -genkeypair -v -storetype pkcs12 -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          fi
+
+      # Spotify's dashboard needs this fingerprint (public: it's in every APK) to let Crate control the app.
+      - name: Signing fingerprint for Spotify
+        run: |
+          SHA1=$(keytool -list -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey | grep -E "SHA1:" | sed 's/.*SHA1: *//')
+          echo "::notice title=Spotify fingerprint::$SHA1"
+          echo "Spotify dashboard → Android packages: package \`io.github.pvandenboer_alt.crate\`, SHA1 fingerprint \`$SHA1\`" >> "$GITHUB_STEP_SUMMARY"
+
+      # A release build (not debuggable, so the app's storage can't be inspected over USB), signed with
+      # the same key as earlier builds so it installs over them.
+      - name: Sign with that key
+        run: |
+          cat >> android/app/build.gradle <<'GRADLE'
+
+          android {
+              signingConfigs {
+                  release {
+                      storeFile file(System.getProperty('user.home') + '/.android/debug.keystore')
+                      storePassword 'android'
+                      keyAlias 'androiddebugkey'
+                      keyPassword 'android'
+                  }
+              }
+              buildTypes {
+                  release {
+                      signingConfig signingConfigs.release
+                  }
+              }
+          }
+          GRADLE
+
+      - name: Build APK
+        working-directory: app/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: 1.${{ github.run_number }}
+        run: |
+          cp android/app/build/outputs/apk/release/app-release.apk Crate.apk
+          NOTES="Version $VERSION. On your Android phone, download Crate.apk below and open it to install or update. Setup: see docs/SETUP.md."
+          git tag -f crate && git push -f origin refs/tags/crate
+          if gh release view crate >/dev/null 2>&1; then
+            gh release upload crate Crate.apk --clobber
+            gh release edit crate --title "Crate $VERSION" --notes "$NOTES"
+          else
+            gh release create crate Crate.apk --title "Crate $VERSION" --notes "$NOTES"
+          fi

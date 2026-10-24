@@ -1,0 +1,213 @@
+# Maps Last.fm tags (lower case) to the curated genres in Notion. Tags not listed here are kept in
+# the raw Tags field but don't become a genre. An artist gets at most 3 genres, strongest tag first.
+# The sync keeps the genres it set itself up to date with this file; genres you set by hand (in
+# Notion or Crate) are never changed. Run the weekly sync as a dry run to preview what would change.
+
+Nederhop:
+  - nederhop
+  - dutch hip-hop
+  - dutch hip hop
+  - dutch rap
+  - nederlandse hiphop
+  - nederlandse rap
+  - nederrap
+  - dutch hiphop
+Hip-hop:
+  - hip-hop
+  - hip hop
+  - hiphop
+  - rap
+  - underground hip-hop
+  - underground hip hop
+  - east coast rap
+  - west coast rap
+  - conscious hip hop
+  - jazz rap
+  - boom bap
+  - trip-hop
+  - trip hop
+  - grime
+  - trap
+Alternative rock:
+  - alternative rock
+  - alternative
+  - grunge
+  - post-grunge
+  - britpop
+  - post-punk revival
+  - noise rock
+Rock:
+  - rock
+  - classic rock
+  - hard rock
+  - rock and roll
+  - rock n roll
+  - psychedelic rock
+  - progressive rock
+  - stoner rock
+  - garage rock
+  - blues rock
+  - southern rock
+  - dutch rock
+  - nederrock
+Indie:
+  - indie
+  - indie rock
+  - indie pop
+  - indie folk
+  - lo-fi
+  - shoegaze
+  - dream pop
+  - post-rock
+Singer-songwriter:
+  - singer-songwriter
+  - singer songwriter
+  - acoustic
+  - chanson
+  - kleinkunst
+Folk:
+  - folk
+  - folk rock
+  - americana
+  - celtic
+  - folk pop
+  - bluegrass
+Soul:
+  - soul
+  - neo-soul
+  - neo soul
+  - motown
+  - northern soul
+  - classic soul
+R&B:
+  - rnb
+  - r&b
+  - rhythm and blues
+  - contemporary r&b
+Funk:
+  - funk
+  - p-funk
+  - disco
+  - afrobeat
+Jazz:
+  - jazz
+  - smooth jazz
+  - acid jazz
+  - nu jazz
+  - jazz fusion
+  - fusion
+  - bebop
+  - vocal jazz
+Reggae:
+  - reggae
+  - dub
+  - ska
+  - dancehall
+  - roots reggae
+Electronic:
+  - electronic
+  - electronica
+  - ambient
+  - idm
+  - downtempo
+  - chillout
+  - synthpop
+  - synth-pop
+  - electro
+  - experimental
+Dance:
+  - dance
+  - house
+  - deep house
+  - techno
+  - trance
+  - edm
+  - drum and bass
+  - dnb
+  - dubstep
+  - big beat
+  - electro house
+Pop:
+  - pop
+  - dance-pop
+  - pop rock
+  - dutch pop
+  - nederpop
+  - nederlandstalig
+  - europop
+Metal:
+  - metal
+  - heavy metal
+  - nu metal
+  - alternative metal
+  - thrash metal
+  - death metal
+  - metalcore
+  - rap metal
+Punk:
+  - punk
+  - punk rock
+  - pop punk
+  - post-punk
+  - hardcore punk
+  - skate punk
+Blues:
+  - blues
+  - delta blues
+  - electric blues
+Country:
+  - country
+  - alt-country
+  - outlaw country
+  - country rock
+Hardcore:
+  - gabber
+  - gabba
+  - happy hardcore
+  - hardcore techno
+  - early hardcore
+  - frenchcore
+  - uptempo
+  - uptempo hardcore
+  - terrorcore
+  - speedcore
+  - millennium hardcore
+  - industrial hardcore
+Soundtrack:
+  - soundtrack
+  - score
+  - film score
+  - video game music
+
+# Tags that mean different things in different scenes. The artist's other tags decide: the genre whose
+# context tags weigh most wins; with no context, the tag is ignored.
+_ambiguous:
+  hardcore:
+    Hardcore: [gabber, gabba, happy hardcore, hardcore techno, early hardcore, frenchcore, uptempo, terrorcore,
+               speedcore, rave, techno, electronic, hardstyle, dance, thunderdome, rotterdam]
+    Punk: [punk, hardcore punk, punk rock, metalcore, post-hardcore, metal, crust, straight edge, beatdown, nyhc, emo]
+
+# Fallback for tags (and Spotify genre names) not listed above: the first pattern that matches wins.
+# Patterns are case-insensitive regular expressions. Order matters: Nederhop before Hip-hop.
+_keywords:
+  - ['dutch.*(hip ?hop|rap|trap|drill)|nederhop|\bnl ?(rap|hip ?hop)|(rap|hip ?hop) nl\b|straatrap', Nederhop]
+  - ['hip ?hop|\brap\b|\btrap\b|drill|grime|boom ?bap|g-funk', Hip-hop]
+  - ['hardcore techno|gabber|happy hardcore|frenchcore|uptempo|terrorcore', Hardcore]
+  - ['\bmetal\b|metalcore|deathcore|djent', Metal]
+  - ['punk', Punk]
+  - ['singer.?songwriter|kleinkunst|chanson|cantautor', Singer-songwriter]
+  - ['\bindie', Indie]
+  - ['alternative|grunge|britpop', Alternative rock]
+  - ['rock', Rock]
+  - ['r&b|\brnb\b|rhythm and blues', R&B]
+  - ['soul', Soul]
+  - ['^funk|\bfunk$|disco|afrobeat', Funk]
+  - ['jazz|bossa', Jazz]
+  - ['reggae\b|dancehall|\bdub\b|\bska\b', Reggae]
+  - ['house|techno|\bedm\b|trance|dubstep|drum and bass|\bdnb\b|big room|hardstyle|bass music|moombahton', Dance]
+  - ['electro|ambient|synth|downtempo|\bidm\b|chillout|lo.?fi|trip.?hop', Electronic]
+  - ['folk|americana|celtic|bluegrass', Folk]
+  - ['country', Country]
+  - ['blues', Blues]
+  - ['soundtrack|\bscore\b|musical', Soundtrack]
+  - ['pop|schlager|levenslied|smartlap', Pop]

@@ -1,0 +1,12 @@
+{
+  "appId": "io.github.pvandenboer_alt.crate",
+  "appName": "Crate",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#FFFFFF"
+  },
+  "plugins": {
+    "CapacitorHttp": { "enabled": true },
+    "SystemBars": { "insetsHandling": "native", "initialViewportFitValueHint": "cover" }
+  }
+}

@@ -1,0 +1,48 @@
+# Crate settings. Fill in the three lines marked YOURS; the rest has sensible defaults you can tune
+# after the first dry run (see docs/SETUP.md).
+
+notion:
+  # Filled in by the "Set up Notion" workflow (sync/setup.py). Leave them empty until then.
+  artists: ""
+  albums: ""
+  new_releases: ""
+  blocklist: ""
+  crate_log: ""        # written by the Crate app, read for the weekly Crate report
+  crate_report: ""     # a page, rewritten weekly
+
+lastfm_user: ""        # YOURS: your Last.fm username
+timezone: "UTC"        # YOURS: your time zone (a tz database name, e.g. Europe/London, America/New_York)
+# Last.fm scrobbles from this moment on are added to the Spotify export. Empty: right after the export's
+# last play. Without an export, the weekly sync reads your whole Last.fm history.
+scrobbles_from: ""
+
+thresholds:
+  # Importer: an artist enters with this many plays all-time OR this many distinct tracks.
+  artist_plays: 20
+  artist_tracks: 8
+  # Importer: an album enters with this many distinct tracks AND this many plays.
+  album_tracks: 3
+  album_plays: 8
+  # Weekly sync, counted over the last `recent_days` days.
+  recent_days: 30
+  weekly_artist_plays: 10
+  weekly_album_tracks: 3
+
+levels:
+  # Share of Keep and Review rows, ranked by plays (the rest are "A bit").
+  a_whole_lot: 0.10
+  quite_a_bit: 0.30
+
+enrichment:
+  tag_min_weight: 30     # Last.fm tags at or above this weight map to genres
+  max_genres: 3
+  tags_kept: 20          # how many raw tags go into the Tags field
+  similar_kept: 10
+
+releases:
+  # How far back the first release check for an artist looks (later checks start at Last release check).
+  first_check_days: 30
+  market: US           # YOURS: your Spotify country (two letters, e.g. GB, NL, AU)
+
+health:
+  max_scrobble_age_days: 7

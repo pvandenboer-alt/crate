@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+node_modules/
+app/android/
+app/www/secrets.js
+app/www/fonts/
+.DS_Store
+*.keystore
+*.jks
+.env
+# In your private copy, your Spotify export goes in data/ (see data/README.md); nothing else does.
+data/*
+!data/README.md
+!data/Streaming_History_Audio_*.json

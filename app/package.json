@@ -1,0 +1,21 @@
+{
+  "name": "crate",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Crate: rediscover the music in your Notion music library",
+  "scripts": {
+    "android:add": "cap add android",
+    "sync": "cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.3",
+    "@capacitor/app": "8.1.2",
+    "@capacitor/core": "8.5.3",
+    "@capacitor/network": "8.0.1"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "3.0.5",
+    "@capacitor/cli": "8.5.3",
+    "@fontsource-variable/inter": "5.2.5"
+  }
+}

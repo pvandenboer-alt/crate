@@ -1,0 +1,30 @@
+# Artists the importer and weekly sync skip. Rows set to Status = Excluded in Notion are skipped too
+# and never re-added, so this file is only for things you never want to see suggested.
+
+# Exact artist names (matched case- and accent-insensitively).
+# Handy for a shared account (kids' songs, someone else's favourites) or sleep sounds Last.fm doesn't tag.
+# You can also block artists from the Crate app, which adds them to the Blocklist database in Notion.
+artists:
+  # - Some Artist
+
+# Last.fm tag patterns (case-insensitive regular expressions). An artist is skipped when one of its
+# three strongest tags (weight 50 or more) matches one of these. Note: "soundtrack" also skips film composers and means the
+# Soundtrack genre is never assigned automatically; remove it if you want those artists back.
+tags:
+  - soundtrack
+  - disney
+  - children'?s music
+  - kids
+  - nursery
+  - lullab(y|ies)
+  - sleep
+  - white noise
+  - rain sounds
+  - nature sounds
+  - meditation
+  # Spoken word: stand-up sets aren't music. Remove these two if you want comedians in Crate.
+  - comedy
+  - comedian
+  - stand-up
+  - wave noise
+  - ocean sounds
