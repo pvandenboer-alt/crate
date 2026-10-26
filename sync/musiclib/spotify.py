@@ -20,8 +20,8 @@ class SpotifyBlocked(SpotifyError):
 
 
 MAX_WAIT = 60          # seconds; a longer Retry-After means a rate-limit block, not a hiccup
-MAX_REQUESTS = 80      # per run: development-mode apps are blocked for a day when they ask too much at once
-MIN_INTERVAL = 2.0     # seconds between requests
+MAX_REQUESTS = 150     # per run: development-mode apps are blocked for a day when they ask too much at once
+MIN_INTERVAL = 2.5     # seconds between requests (150 take about 6 minutes)
 GRACE = 3 * 3600       # after a block, stay away this much longer than Spotify asked
 
 
